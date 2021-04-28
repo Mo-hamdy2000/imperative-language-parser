@@ -6,15 +6,9 @@ import java.io.StringReader;
 public class SILParser {
   
     public static void main(String[] args) throws Exception {
-      StringReader in=new StringReader(System.console().readLine());
+      StringReader in = new StringReader(System.console().readLine());
       SILParser parser = new SILParser(in);
-      try {
-        System.out.println("Hiiii");
-        SILParser.command();
-        System.out.println("input is parsed successfully");
-      } catch (Throwable e) {
-        e.printStackTrace();
-      }
+      SILParser.Input();
       
     }
     
@@ -35,21 +29,44 @@ SKIP:
 TOKEN: {
   		<DIGIT: ["0"-"9"]>
 	|  	<LETTER: ["a"-"f"]>
+	| 	< SIGN: "+"|"-">
   }
 
 
-void Num(): {}
+/** Root production. */
+void Input() :
+{}
+{
+  Command() <EOF>
+  { System.out.println("End Reached"); }
+}
+
+int Num():
+{
+	String num;
+  }
 {
   (<DIGIT>)+
+  { return 6; }
 }
 
 void Var(): {}
 {
   (<LETTER>)+
 }
-void ArithmeticExpression(): {}
+int ArithmeticExpression():
 {
-  ("(" ArithmeticExpression()) ("+"|"-") (ArithmeticExpression() ")") | Num() | Var() 
+	int first, second;
+	boolean addition = true;
+	String sign;
+}
+{
+		("(" first=ArithmeticExpression()) (sign=<SIGN> { if (sign=="-") addition = false; }) (second=ArithmeticExpression() ")")
+		{ return first + second; }
+ 	|	first=Num()
+ 		{ return first; }
+	|	Var()
+		{ return 1; }
 }
 
 void BooleanExpression(): {}
@@ -60,17 +77,17 @@ void BooleanExpression(): {}
 	| 	"!" BooleanExpression()
 	| 	"tt" | "ff"
 }
-void command(): {}
+void Command(): {}
 {
   	LOOKAHEAD(2)
   	statment() |
-  	statment() ";" command()
+  	statment() ";" Command()
 }
 
 void statment(): {}
 {
 		"skip" | Var() ":=" ArithmeticExpression()
-	|	"if" BooleanExpression() "then" command() "else" command()
-	| 	"while" BooleanExpression() "do" command()
+	|	"if" BooleanExpression() "then" Command() "else" Command()
+	| 	"while" BooleanExpression() "do" Command()
 }
 

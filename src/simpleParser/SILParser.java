@@ -6,19 +6,21 @@ import java.io.StringReader;
 public class SILParser implements SILParserConstants {
 
     public static void main(String[] args) throws Exception {
-      StringReader in=new StringReader(System.console().readLine());
+      StringReader in = new StringReader(System.console().readLine());
       SILParser parser = new SILParser(in);
-      try {
-        System.out.println("Hiiii");
-        SILParser.command();
-        System.out.println("input is parsed successfully");
-      } catch (Throwable e) {
-        e.printStackTrace();
-      }
+      SILParser.Input();
 
     }
 
-  static final public void Num() throws ParseException {
+/** Root production. */
+  static final public void Input() throws ParseException {
+    Command();
+    jj_consume_token(0);
+    System.out.println("End Reached");
+  }
+
+  static final public int Num() throws ParseException {
+        String num;
     label_1:
     while (true) {
       jj_consume_token(DIGIT);
@@ -31,6 +33,8 @@ public class SILParser implements SILParserConstants {
         break label_1;
       }
     }
+    {if (true) return 6;}
+    throw new Error("Missing return statement in function");
   }
 
   static final public void Var() throws ParseException {
@@ -48,64 +52,82 @@ public class SILParser implements SILParserConstants {
     }
   }
 
-  static final public void ArithmeticExpression() throws ParseException {
+  static final public int ArithmeticExpression() throws ParseException {
+        int first, second;
+        boolean addition = true;
+        String sign;
     switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
-    case 7:
-      jj_consume_token(7);
-      ArithmeticExpression();
-      switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
-      case 8:
-        jj_consume_token(8);
-        break;
-      case 9:
-        jj_consume_token(9);
-        break;
-      default:
-        jj_la1[2] = jj_gen;
-        jj_consume_token(-1);
-        throw new ParseException();
-      }
-      ArithmeticExpression();
-      jj_consume_token(10);
+    case 8:
+      jj_consume_token(8);
+      first = ArithmeticExpression();
+      sign = jj_consume_token(SIGN);
+                                                                  if (sign=="-") addition = false;
+      second = ArithmeticExpression();
+      jj_consume_token(9);
+                  {if (true) return first + second;}
       break;
     case DIGIT:
-      Num();
+      first = Num();
+                  {if (true) return first;}
       break;
     case LETTER:
       Var();
+                  {if (true) return 1;}
       break;
     default:
-      jj_la1[3] = jj_gen;
+      jj_la1[2] = jj_gen;
       jj_consume_token(-1);
       throw new ParseException();
     }
+    throw new Error("Missing return statement in function");
   }
 
   static final public void BooleanExpression() throws ParseException {
     if (jj_2_1(2)) {
-      jj_consume_token(7);
-      BooleanExpression();
-      jj_consume_token(11);
+      jj_consume_token(8);
       BooleanExpression();
       jj_consume_token(10);
+      BooleanExpression();
+      jj_consume_token(9);
     } else {
       switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
-      case 7:
-        jj_consume_token(7);
+      case 8:
+        jj_consume_token(8);
         ArithmeticExpression();
+        jj_consume_token(11);
+        ArithmeticExpression();
+        jj_consume_token(9);
+        break;
+      case 12:
         jj_consume_token(12);
-        ArithmeticExpression();
-        jj_consume_token(10);
+        BooleanExpression();
         break;
       case 13:
         jj_consume_token(13);
-        BooleanExpression();
         break;
       case 14:
         jj_consume_token(14);
         break;
-      case 15:
+      default:
+        jj_la1[3] = jj_gen;
+        jj_consume_token(-1);
+        throw new ParseException();
+      }
+    }
+  }
+
+  static final public void Command() throws ParseException {
+    if (jj_2_2(2)) {
+      statment();
+    } else {
+      switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
+      case LETTER:
+      case 16:
+      case 18:
+      case 21:
+        statment();
         jj_consume_token(15);
+        Command();
         break;
       default:
         jj_la1[4] = jj_gen;
@@ -115,53 +137,32 @@ public class SILParser implements SILParserConstants {
     }
   }
 
-  static final public void command() throws ParseException {
-    if (jj_2_2(2)) {
-      statment();
-    } else {
-      switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
-      case LETTER:
-      case 17:
-      case 19:
-      case 22:
-        statment();
-        jj_consume_token(16);
-        command();
-        break;
-      default:
-        jj_la1[5] = jj_gen;
-        jj_consume_token(-1);
-        throw new ParseException();
-      }
-    }
-  }
-
   static final public void statment() throws ParseException {
     switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
-    case 17:
-      jj_consume_token(17);
+    case 16:
+      jj_consume_token(16);
       break;
     case LETTER:
       Var();
-      jj_consume_token(18);
+      jj_consume_token(17);
       ArithmeticExpression();
       break;
-    case 19:
+    case 18:
+      jj_consume_token(18);
+      BooleanExpression();
       jj_consume_token(19);
-      BooleanExpression();
+      Command();
       jj_consume_token(20);
-      command();
-      jj_consume_token(21);
-      command();
+      Command();
       break;
-    case 22:
-      jj_consume_token(22);
+    case 21:
+      jj_consume_token(21);
       BooleanExpression();
-      jj_consume_token(23);
-      command();
+      jj_consume_token(22);
+      Command();
       break;
     default:
-      jj_la1[6] = jj_gen;
+      jj_la1[5] = jj_gen;
       jj_consume_token(-1);
       throw new ParseException();
     }
@@ -181,62 +182,8 @@ public class SILParser implements SILParserConstants {
     finally { jj_save(1, xla); }
   }
 
-  static private boolean jj_3R_9() {
-    if (jj_scan_token(22)) return true;
-    if (jj_3R_3()) return true;
-    return false;
-  }
-
-  static private boolean jj_3R_8() {
-    if (jj_scan_token(19)) return true;
-    if (jj_3R_3()) return true;
-    return false;
-  }
-
-  static private boolean jj_3R_4() {
-    Token xsp;
-    xsp = jj_scanpos;
-    if (jj_scan_token(17)) {
-    jj_scanpos = xsp;
-    if (jj_3R_7()) {
-    jj_scanpos = xsp;
-    if (jj_3R_8()) {
-    jj_scanpos = xsp;
-    if (jj_3R_9()) return true;
-    }
-    }
-    }
-    return false;
-  }
-
-  static private boolean jj_3R_6() {
-    if (jj_scan_token(13)) return true;
-    return false;
-  }
-
-  static private boolean jj_3R_5() {
-    if (jj_scan_token(7)) return true;
-    return false;
-  }
-
-  static private boolean jj_3R_7() {
-    if (jj_3R_10()) return true;
-    if (jj_scan_token(18)) return true;
-    return false;
-  }
-
-  static private boolean jj_3R_10() {
-    Token xsp;
-    if (jj_scan_token(6)) return true;
-    while (true) {
-      xsp = jj_scanpos;
-      if (jj_scan_token(6)) { jj_scanpos = xsp; break; }
-    }
-    return false;
-  }
-
   static private boolean jj_3_1() {
-    if (jj_scan_token(7)) return true;
+    if (jj_scan_token(8)) return true;
     if (jj_3R_3()) return true;
     return false;
   }
@@ -255,13 +202,67 @@ public class SILParser implements SILParserConstants {
     jj_scanpos = xsp;
     if (jj_3R_6()) {
     jj_scanpos = xsp;
-    if (jj_scan_token(14)) {
+    if (jj_scan_token(13)) {
     jj_scanpos = xsp;
-    if (jj_scan_token(15)) return true;
+    if (jj_scan_token(14)) return true;
     }
     }
     }
     }
+    return false;
+  }
+
+  static private boolean jj_3R_9() {
+    if (jj_scan_token(21)) return true;
+    if (jj_3R_3()) return true;
+    return false;
+  }
+
+  static private boolean jj_3R_8() {
+    if (jj_scan_token(18)) return true;
+    if (jj_3R_3()) return true;
+    return false;
+  }
+
+  static private boolean jj_3R_4() {
+    Token xsp;
+    xsp = jj_scanpos;
+    if (jj_scan_token(16)) {
+    jj_scanpos = xsp;
+    if (jj_3R_7()) {
+    jj_scanpos = xsp;
+    if (jj_3R_8()) {
+    jj_scanpos = xsp;
+    if (jj_3R_9()) return true;
+    }
+    }
+    }
+    return false;
+  }
+
+  static private boolean jj_3R_10() {
+    Token xsp;
+    if (jj_scan_token(6)) return true;
+    while (true) {
+      xsp = jj_scanpos;
+      if (jj_scan_token(6)) { jj_scanpos = xsp; break; }
+    }
+    return false;
+  }
+
+  static private boolean jj_3R_6() {
+    if (jj_scan_token(12)) return true;
+    return false;
+  }
+
+  static private boolean jj_3R_5() {
+    if (jj_scan_token(8)) return true;
+    return false;
+  }
+
+  static private boolean jj_3R_7() {
+    if (jj_3R_10()) return true;
+    if (jj_scan_token(17)) return true;
     return false;
   }
 
@@ -277,13 +278,13 @@ public class SILParser implements SILParserConstants {
   static private Token jj_scanpos, jj_lastpos;
   static private int jj_la;
   static private int jj_gen;
-  static final private int[] jj_la1 = new int[7];
+  static final private int[] jj_la1 = new int[6];
   static private int[] jj_la1_0;
   static {
       jj_la1_init_0();
    }
    private static void jj_la1_init_0() {
-      jj_la1_0 = new int[] {0x20,0x40,0x300,0xe0,0xe080,0x4a0040,0x4a0040,};
+      jj_la1_0 = new int[] {0x20,0x40,0x160,0x7100,0x250040,0x250040,};
    }
   static final private JJCalls[] jj_2_rtns = new JJCalls[2];
   static private boolean jj_rescan = false;
@@ -307,7 +308,7 @@ public class SILParser implements SILParserConstants {
     token = new Token();
     jj_ntk = -1;
     jj_gen = 0;
-    for (int i = 0; i < 7; i++) jj_la1[i] = -1;
+    for (int i = 0; i < 6; i++) jj_la1[i] = -1;
     for (int i = 0; i < jj_2_rtns.length; i++) jj_2_rtns[i] = new JJCalls();
   }
 
@@ -322,7 +323,7 @@ public class SILParser implements SILParserConstants {
     token = new Token();
     jj_ntk = -1;
     jj_gen = 0;
-    for (int i = 0; i < 7; i++) jj_la1[i] = -1;
+    for (int i = 0; i < 6; i++) jj_la1[i] = -1;
     for (int i = 0; i < jj_2_rtns.length; i++) jj_2_rtns[i] = new JJCalls();
   }
 
@@ -340,7 +341,7 @@ public class SILParser implements SILParserConstants {
     token = new Token();
     jj_ntk = -1;
     jj_gen = 0;
-    for (int i = 0; i < 7; i++) jj_la1[i] = -1;
+    for (int i = 0; i < 6; i++) jj_la1[i] = -1;
     for (int i = 0; i < jj_2_rtns.length; i++) jj_2_rtns[i] = new JJCalls();
   }
 
@@ -351,7 +352,7 @@ public class SILParser implements SILParserConstants {
     token = new Token();
     jj_ntk = -1;
     jj_gen = 0;
-    for (int i = 0; i < 7; i++) jj_la1[i] = -1;
+    for (int i = 0; i < 6; i++) jj_la1[i] = -1;
     for (int i = 0; i < jj_2_rtns.length; i++) jj_2_rtns[i] = new JJCalls();
   }
 
@@ -368,7 +369,7 @@ public class SILParser implements SILParserConstants {
     token = new Token();
     jj_ntk = -1;
     jj_gen = 0;
-    for (int i = 0; i < 7; i++) jj_la1[i] = -1;
+    for (int i = 0; i < 6; i++) jj_la1[i] = -1;
     for (int i = 0; i < jj_2_rtns.length; i++) jj_2_rtns[i] = new JJCalls();
   }
 
@@ -378,7 +379,7 @@ public class SILParser implements SILParserConstants {
     token = new Token();
     jj_ntk = -1;
     jj_gen = 0;
-    for (int i = 0; i < 7; i++) jj_la1[i] = -1;
+    for (int i = 0; i < 6; i++) jj_la1[i] = -1;
     for (int i = 0; i < jj_2_rtns.length; i++) jj_2_rtns[i] = new JJCalls();
   }
 
@@ -490,12 +491,12 @@ public class SILParser implements SILParserConstants {
   /** Generate ParseException. */
   static public ParseException generateParseException() {
     jj_expentries.clear();
-    boolean[] la1tokens = new boolean[24];
+    boolean[] la1tokens = new boolean[23];
     if (jj_kind >= 0) {
       la1tokens[jj_kind] = true;
       jj_kind = -1;
     }
-    for (int i = 0; i < 7; i++) {
+    for (int i = 0; i < 6; i++) {
       if (jj_la1[i] == jj_gen) {
         for (int j = 0; j < 32; j++) {
           if ((jj_la1_0[i] & (1<<j)) != 0) {
@@ -504,7 +505,7 @@ public class SILParser implements SILParserConstants {
         }
       }
     }
-    for (int i = 0; i < 24; i++) {
+    for (int i = 0; i < 23; i++) {
       if (la1tokens[i]) {
         jj_expentry = new int[1];
         jj_expentry[0] = i;
