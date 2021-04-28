@@ -2,16 +2,17 @@ PARSER_BEGIN(SILParser)
 package simpleParser;
 
 import java.io.StringReader;
+import java.util.HashMap;
 
 public class SILParser {
-  
+
+	public static HashMap<String, Integer> variables = new HashMap<String, Integer>();
+
     public static void main(String[] args) throws Exception {
-      StringReader in = new StringReader(System.console().readLine());
-      SILParser parser = new SILParser(in);
+      SILParser parser = new SILParser(System.in);
       SILParser.Input();
-      
     }
-    
+
 }
 
 PARSER_END(SILParser)
@@ -27,49 +28,66 @@ SKIP:
 }
 
 TOKEN: {
-  		<TRUE: "tt">
-  	| 	<FALSE: "ff">
- 	|	<NUM: (<DIGIT>)+ >
- 	|	<VAR: (<LETTER>)+ >
-	|	<DIGIT: ["0"-"9"]>
-	|  	<LETTER: ["a"-"f"]>
-	| 	<SIGN: "+"|"-">
+  		< DIGIT: ["0"-"9"] >
+  	| 	< TRUE: "tt" >
+	| 	< FALSE: "ff" >
+	|  	< LETTER: ["a"-"f"] >
+	|	<NUM: (<DIGIT>)+ >
+	|	<VAR: (<LETTER>)+ >
+	| 	< SIGN: "+"|"-" >
   }
 
 /** Root production. */
 void Input() :
 {}
 {
-  Command()
-  { System.out.println("End Reached"); }
+  Command() <EOF>
 }
 
+int Num(): {}
+{
+ (< DIGIT >)+
+}
+
+String Var(): {}
+{
+  (< LETTER >)+
+}
 int ArithmeticExpression():
 {
-  	Token temp;
+  	Token tok;
 	int first, second;
 	boolean addition = true;
-	Token sign;
 }
 {
-		("(" first=ArithmeticExpression()) (sign= <SIGN> { if (sign.toString() =="-") addition = false; }) (second=ArithmeticExpression() ")")
-		{ return first + second; }
- 	|	temp = <NUM>
+		("(" first=ArithmeticExpression()) (tok= <SIGN> { if (tok.toString() =="-") addition = false; }) (second=ArithmeticExpression() ")")
+		{ return addition? first + second : first - second; }
+ 	|	tok=<NUM>
  		{
- 		  System.out.println(temp.toString());
- 		  return Integer.parseInt(temp.toString());
+ 		  System.out.println(tok.toString());
+ 		  return Integer.parseInt(tok.toString());
  		}
-	|	<VAR>
-		{ return 1; }
+	|	tok=<VAR>
+		{ return SILParser.variables.get(tok.toString()); }
 }
 
-void BooleanExpression(): {}
+boolean BooleanExpression():
+{
+	boolean firstBool, secondBool;
+	int firstInt, secondInt;
+  }
 {
   		LOOKAHEAD(2)
-	 	"(" BooleanExpression() "^" BooleanExpression() ")"
-	| 	"("ArithmeticExpression() "==" ArithmeticExpression()")"
-	| 	"!" BooleanExpression()
-	| 	<TRUE> | <FALSE>
+	 	"(" firstBool=BooleanExpression() "^" secondBool=BooleanExpression() ")"
+	 	{ return  first && second;}
+	| 	"("firstInt=ArithmeticExpression() "==" secondInt=ArithmeticExpression()")"
+		{ return firstInt==secondInt ? true : false; }
+	| 	"!" firstBool=BooleanExpression()
+		{ return !firstBool; }
+	|	< TRUE >
+		{ return true; }
+	|	< FALSE >
+		{ return false; }
 }
 void Command(): {}
 {
@@ -78,10 +96,15 @@ void Command(): {}
   	statment() ";" Command()
 }
 
-void statment(): {}
+void statment():
 {
-		"skip" | <VAR> ":=" ArithmeticExpression()
+	int num;
+	Token name;
+  }
+{
+		"skip"
+	| 	name=< VAR > ":=" num=ArithmeticExpression()
+		{ SILParser.variables.put(name.toString(), num); }
 	|	"if" BooleanExpression() "then" Command() "else" Command()
 	| 	"while" BooleanExpression() "do" Command()
 }
-
