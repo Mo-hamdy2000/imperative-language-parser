@@ -28,12 +28,12 @@ SKIP:
 }
 
 TOKEN: {
-  		< DIGIT: ["0"-"9"] >
-  	| 	< TRUE: "tt" >
+    	< TRUE: "tt" >
 	| 	< FALSE: "ff" >
+  	| 	< NUM: (<DIGIT>)+ >
+ 	| 	< DIGIT: ["0"-"9"] >
+	|	< VAR: (<LETTER>)+ >
 	|  	< LETTER: ["a"-"f"] >
-	|	<NUM: (<DIGIT>)+ >
-	|	<VAR: (<LETTER>)+ >
 	| 	< SIGN: "+"|"-" >
   }
 
@@ -44,15 +44,6 @@ void Input() :
   Command() <EOF>
 }
 
-int Num(): {}
-{
- (< DIGIT >)+
-}
-
-String Var(): {}
-{
-  (< LETTER >)+
-}
 int ArithmeticExpression():
 {
   	Token tok;
@@ -64,7 +55,7 @@ int ArithmeticExpression():
 		{ return addition? first + second : first - second; }
  	|	tok=<NUM>
  		{
- 		  System.out.println(tok.toString());
+ 		  //System.out.println(tok.toString());
  		  return Integer.parseInt(tok.toString());
  		}
 	|	tok=<VAR>
