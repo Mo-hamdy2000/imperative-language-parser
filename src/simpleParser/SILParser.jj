@@ -10,7 +10,8 @@ public class SILParser {
 
     public static void main(String[] args) throws Exception {
       SILParser parser = new SILParser(System.in);
-      SILParser.Input();
+      parser.Input();
+      System.out.println("input is parsed successfully");
     }
 
 }
@@ -41,7 +42,7 @@ TOKEN: {
 void Input() :
 {}
 {
-  Command() <EOF>
+  Command() //<EOF>
 }
 
 int ArithmeticExpression():
@@ -51,11 +52,10 @@ int ArithmeticExpression():
 	boolean addition = true;
 }
 {
-		("(" first=ArithmeticExpression()) (tok= <SIGN> { if (tok.toString() =="-") addition = false; }) (second=ArithmeticExpression() ")")
+		("(" first=ArithmeticExpression()) (tok= <SIGN> { if (tok.toString().equals("-")) addition = false; }) (second=ArithmeticExpression() ")")
 		{ return addition? first + second : first - second; }
  	|	tok=<NUM>
  		{
- 		  //System.out.println(tok.toString());
  		  return Integer.parseInt(tok.toString());
  		}
 	|	tok=<VAR>
@@ -70,7 +70,7 @@ boolean BooleanExpression():
 {
   		LOOKAHEAD(2)
 	 	"(" firstBool=BooleanExpression() "^" secondBool=BooleanExpression() ")"
-	 	{ return  first && second;}
+	 	{ return  firstBool && secondBool;}
 	| 	"("firstInt=ArithmeticExpression() "==" secondInt=ArithmeticExpression()")"
 		{ return firstInt==secondInt ? true : false; }
 	| 	"!" firstBool=BooleanExpression()
@@ -91,11 +91,18 @@ void statment():
 {
 	int num;
 	Token name;
+	boolean tok;
   }
 {
 		"skip"
-	| 	name=< VAR > ":=" num=ArithmeticExpression()
-		{ SILParser.variables.put(name.toString(), num); }
-	|	"if" BooleanExpression() "then" Command() "else" Command()
+	| 	name=<VAR> ":=" num = ArithmeticExpression()
+		{
+		  	SILParser.variables.put(name.toString(), num);
+			System.out.println("Arithmetic Expression evaluated "+num);
+		 }
+	|	"if" tok=BooleanExpression() "then" Command() "else" Command()
+		{
+			System.out.println("Boolean Expression evaluated "+tok);
+		}
 	| 	"while" BooleanExpression() "do" Command()
 }
