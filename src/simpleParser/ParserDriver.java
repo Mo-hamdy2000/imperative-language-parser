@@ -6,7 +6,7 @@ public class ParserDriver {
 		new SILParser(System.in);
 		try {
 			System.out.println("Enter your phrase: ");
-			SILParser.command();
+			SILParser.Input();
         	System.out.println("input is parsed successfully");
 		} catch (Throwable e) {
 			System.out.println("Unfortunately parsing is unsuccessful");
