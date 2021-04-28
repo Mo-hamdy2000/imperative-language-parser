@@ -1,0 +1,76 @@
+PARSER_BEGIN(SILParser)
+package simpleParser;
+
+import java.io.StringReader;
+
+public class SILParser {
+  
+    public static void main(String[] args) throws Exception {
+      StringReader in=new StringReader(System.console().readLine());
+      SILParser parser = new SILParser(in);
+      try {
+        System.out.println("Hiiii");
+        SILParser.command();
+        System.out.println("input is parsed successfully");
+      } catch (Throwable e) {
+        e.printStackTrace();
+      }
+      
+    }
+    
+}
+
+PARSER_END(SILParser)
+
+
+
+SKIP:
+{
+  " "
+| "\t"
+| "\n"
+| "\r"
+}
+
+TOKEN: {
+  		<DIGIT: ["0"-"9"]>
+	|  	<LETTER: ["a"-"f"]>
+  }
+
+
+void Num(): {}
+{
+  (<DIGIT>)+
+}
+
+void Var(): {}
+{
+  (<LETTER>)+
+}
+void ArithmeticExpression(): {}
+{
+  ("(" ArithmeticExpression()) ("+"|"-") (ArithmeticExpression() ")") | Num() | Var() 
+}
+
+void BooleanExpression(): {}
+{
+  		LOOKAHEAD(2)
+	 	"(" BooleanExpression() "^" BooleanExpression() ")"
+	| 	"("ArithmeticExpression() "==" ArithmeticExpression()")"
+	| 	"!" BooleanExpression()
+	| 	"tt" | "ff"
+}
+void command(): {}
+{
+  	LOOKAHEAD(2)
+  	statment() |
+  	statment() ";" command()
+}
+
+void statment(): {}
+{
+		"skip" | Var() ":=" ArithmeticExpression()
+	|	"if" BooleanExpression() "then" command() "else" command()
+	| 	"while" BooleanExpression() "do" command()
+}
+
