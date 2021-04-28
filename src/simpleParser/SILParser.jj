@@ -27,45 +27,39 @@ SKIP:
 }
 
 TOKEN: {
-  		<DIGIT: ["0"-"9"]>
+  		<TRUE: "tt">
+  	| 	<FALSE: "ff">
+ 	|	<NUM: (<DIGIT>)+ >
+ 	|	<VAR: (<LETTER>)+ >
+	|	<DIGIT: ["0"-"9"]>
 	|  	<LETTER: ["a"-"f"]>
-	| 	< SIGN: "+"|"-">
+	| 	<SIGN: "+"|"-">
   }
-
 
 /** Root production. */
 void Input() :
 {}
 {
-  Command() <EOF>
+  Command()
   { System.out.println("End Reached"); }
 }
 
-int Num():
-{
-	String num;
-  }
-{
-  (<DIGIT>)+
-  { return 6; }
-}
-
-void Var(): {}
-{
-  (<LETTER>)+
-}
 int ArithmeticExpression():
 {
+  	Token temp;
 	int first, second;
 	boolean addition = true;
-	String sign;
+	Token sign;
 }
 {
-		("(" first=ArithmeticExpression()) (sign=<SIGN> { if (sign=="-") addition = false; }) (second=ArithmeticExpression() ")")
+		("(" first=ArithmeticExpression()) (sign= <SIGN> { if (sign.toString() =="-") addition = false; }) (second=ArithmeticExpression() ")")
 		{ return first + second; }
- 	|	first=Num()
- 		{ return first; }
-	|	Var()
+ 	|	temp = <NUM>
+ 		{
+ 		  System.out.println(temp.toString());
+ 		  return Integer.parseInt(temp.toString());
+ 		}
+	|	<VAR>
 		{ return 1; }
 }
 
@@ -75,7 +69,7 @@ void BooleanExpression(): {}
 	 	"(" BooleanExpression() "^" BooleanExpression() ")"
 	| 	"("ArithmeticExpression() "==" ArithmeticExpression()")"
 	| 	"!" BooleanExpression()
-	| 	"tt" | "ff"
+	| 	<TRUE> | <FALSE>
 }
 void Command(): {}
 {
@@ -86,7 +80,7 @@ void Command(): {}
 
 void statment(): {}
 {
-		"skip" | Var() ":=" ArithmeticExpression()
+		"skip" | <VAR> ":=" ArithmeticExpression()
 	|	"if" BooleanExpression() "then" Command() "else" Command()
 	| 	"while" BooleanExpression() "do" Command()
 }
