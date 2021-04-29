@@ -42,7 +42,7 @@ TOKEN: {
 void Input() :
 {}
 {
-  Command() //<EOF>
+  Command(true) <EOF>
 }
 
 int ArithmeticExpression():
@@ -75,34 +75,36 @@ boolean BooleanExpression():
 		{ return firstInt==secondInt ? true : false; }
 	| 	"!" firstBool=BooleanExpression()
 		{ return !firstBool; }
-	|	< TRUE >
+	|	<TRUE>
 		{ return true; }
-	|	< FALSE >
+	|	<FALSE>
 		{ return false; }
 }
-void Command(): {}
+void Command(boolean eval): {}
 {
   	LOOKAHEAD(2)
-  	statment() |
-  	statment() ";" Command()
+  		statment(eval)
+  	|	statment(eval) ";" Command(eval)
 }
 
-void statment():
+void statment(boolean eval):
 {
 	int num;
 	Token name;
-	boolean tok;
+	boolean bool;
   }
 {
 		"skip"
-	| 	name=<VAR> ":=" num = ArithmeticExpression()
+	| 	name=<VAR> ":=" num=ArithmeticExpression()
 		{
-		  	SILParser.variables.put(name.toString(), num);
-			System.out.println("Arithmetic Expression evaluated "+num);
-		 }
-	|	"if" tok=BooleanExpression() "then" Command() "else" Command()
-		{
-			System.out.println("Boolean Expression evaluated "+tok);
+		  if (eval) {
+		  System.out.println("var is "+num);
+		  SILParser.variables.put(name.toString(), num);
+		  }
 		}
-	| 	"while" BooleanExpression() "do" Command()
+	|	"if" bool=BooleanExpression() "then" Command(bool) "else" Command(!bool)
+		{
+		  System.out.println("Boolean Expression evaluated "+bool);
+		  }
+	//| 	"while" BooleanExpression() "do" Command()
 }
