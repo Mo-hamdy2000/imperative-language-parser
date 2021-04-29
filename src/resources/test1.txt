@@ -1,1 +1,2 @@
+abcdef := (5+3); abcdef := (5-3);
 if tt then a := 2 else a := 4

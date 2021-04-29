@@ -57,6 +57,11 @@ TOKEN: {
 	|	< VAR: (<LETTER>)+ >
 	|  	< LETTER: ["a"-"f"] >
 	| 	< SIGN: "+"|"-" >
+	| 	< SEMICOLON: ";" >
+	| 	< IF: "if" >
+	| 	< THEN: "then" >
+	| 	< ELSE: "else" >
+	| 	< WHILE: "while" >
   }
 
 /** Root production. */
@@ -101,11 +106,12 @@ boolean BooleanExpression():
 	|	<FALSE>
 		{ return false; }
 }
+
+
+
 void Command(boolean eval): {}
 {
-  	LOOKAHEAD(2)
-  		statment(eval)
-  	|	statment(eval) ";" Command(eval)
+  	statment(eval) [LOOKAHEAD(1) <SEMICOLON> Command(eval)]
 }
 
 void statment(boolean eval):
@@ -123,9 +129,9 @@ void statment(boolean eval):
 		  SILParser.variables.put(name.toString(), num);
 		  }
 		}
-	|	"if" bool=BooleanExpression() "then" Command(bool) "else" Command(!bool)
+	|	<IF> bool=BooleanExpression() <THEN> Command(bool) <ELSE> Command(!bool)
 		{
 		  System.out.println("Boolean Expression evaluated "+bool);
-		  }
-	//| 	"while" BooleanExpression() "do" Command()
+		}
+	//| 	<WHILE> BooleanExpression() "do" Command()
 }
