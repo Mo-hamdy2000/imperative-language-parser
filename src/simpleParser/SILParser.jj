@@ -1,6 +1,10 @@
 PARSER_BEGIN(SILParser)
 package simpleParser;
 
+import java.io.BufferedReader;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.InputStreamReader;
 import java.io.StringReader;
 import java.util.HashMap;
 
@@ -9,9 +13,26 @@ public class SILParser {
 	public static HashMap<String, Integer> variables = new HashMap<String, Integer>();
 
     public static void main(String[] args) throws Exception {
-      SILParser parser = new SILParser(System.in);
+      System.out.println("Enter input file name or press enter to input from console: ");
+      BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
+      String file = reader.readLine();
+      SILParser parser;
+      
+	  if (file.isEmpty()) {
+	    System.out.println("Please enter your phrase: ");
+	    parser = new SILParser(System.in);
+	  }else {
+	    try { 
+	    	FileReader fileReader = new FileReader("src/resources/" + file + ".txt");
+	    	parser = new SILParser(fileReader);
+	  	} catch (FileNotFoundException e) {
+			System.err.println("Error: File Not Found");
+			System.err.println("Please put the file in the resources");
+			return;
+	  	}
+	  }
+	  
       parser.Input();
-      System.out.println("input is parsed successfully");
     }
 
 }
