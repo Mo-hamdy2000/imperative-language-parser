@@ -1,0 +1,2 @@
+abcdef := (5+3); abcdef := (5-3);
+if tt then a := 2 else a := 4; while (a == 2) do a := 1; b := 7; while (b == 6) do skip;

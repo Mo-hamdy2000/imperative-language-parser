@@ -11,9 +11,33 @@ public interface SILParserConstants {
   /** End of File. */
   int EOF = 0;
   /** RegularExpression Id. */
-  int DIGIT = 5;
+  int TRUE = 5;
   /** RegularExpression Id. */
-  int LETTER = 6;
+  int FALSE = 6;
+  /** RegularExpression Id. */
+  int NUM = 7;
+  /** RegularExpression Id. */
+  int DIGIT = 8;
+  /** RegularExpression Id. */
+  int VAR = 9;
+  /** RegularExpression Id. */
+  int LETTER = 10;
+  /** RegularExpression Id. */
+  int SIGN = 11;
+  /** RegularExpression Id. */
+  int SEMICOLON = 12;
+  /** RegularExpression Id. */
+  int IF = 13;
+  /** RegularExpression Id. */
+  int THEN = 14;
+  /** RegularExpression Id. */
+  int ELSE = 15;
+  /** RegularExpression Id. */
+  int WHILE = 16;
+  /** RegularExpression Id. */
+  int EQUAL = 17;
+  /** RegularExpression Id. */
+  int AND = 18;
 
   /** Lexical state. */
   int DEFAULT = 0;
@@ -25,24 +49,25 @@ public interface SILParserConstants {
     "\"\\t\"",
     "\"\\n\"",
     "\"\\r\"",
-    "<DIGIT>",
-    "<LETTER>",
-    "\"(\"",
-    "\"+\"",
-    "\"-\"",
-    "\")\"",
-    "\"^\"",
-    "\"==\"",
-    "\"!\"",
     "\"tt\"",
     "\"ff\"",
+    "<NUM>",
+    "<DIGIT>",
+    "<VAR>",
+    "<LETTER>",
+    "<SIGN>",
     "\";\"",
-    "\"skip\"",
-    "\":=\"",
     "\"if\"",
     "\"then\"",
     "\"else\"",
     "\"while\"",
+    "\"==\"",
+    "\"^\"",
+    "\"(\"",
+    "\")\"",
+    "\"!\"",
+    "\"skip\"",
+    "\":=\"",
     "\"do\"",
   };
 

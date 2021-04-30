@@ -1,23 +1,52 @@
 PARSER_BEGIN(SILParser)
 package simpleParser;
 
+import java.io.BufferedReader;
+import java.io.FileNotFoundException;
+import java.io.ByteArrayInputStream;
+import java.io.FileReader;
+import java.io.InputStreamReader;
 import java.io.StringReader;
+import java.util.HashMap;
 
 public class SILParser {
-  
-    public static void main(String[] args) throws Exception {
-      StringReader in=new StringReader(System.console().readLine());
-      SILParser parser = new SILParser(in);
-      try {
-        System.out.println("Hiiii");
-        SILParser.command();
-        System.out.println("input is parsed successfully");
-      } catch (Throwable e) {
-        e.printStackTrace();
-      }
-      
+
+	public static HashMap<String, Integer> variables = new HashMap<String, Integer>();
+	public static HashMap<String, Integer> lastStateVariables;
+	
+	public static HashMap<String, Integer> copyMap()
+    {
+        HashMap<String, Integer> currentStateVariables = new HashMap<String, Integer>();
+        for (HashMap.Entry<String, Integer> entry : variables.entrySet()) {
+            currentStateVariables.put(entry.getKey(),
+                           entry.getValue());
+        }
+        return currentStateVariables;
     }
-    
+
+    public static void main(String[] args) throws Exception {
+      System.out.println("Enter input file name or press enter to input from console: ");
+      BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
+      String file = reader.readLine();
+      SILParser parser;
+      
+	  if (file.isEmpty()) {
+	    System.out.println("Please enter your phrase: ");
+	    parser = new SILParser(System.in);
+	  }else {
+	    try { 
+	    	FileReader fileReader = new FileReader("src/resources/" + file + ".txt");
+	    	parser = new SILParser(fileReader);
+	  	} catch (FileNotFoundException e) {
+			System.err.println("Error: File Not Found");
+			System.err.println("Please put the file in the resources");
+			return;
+	  	}
+	  }
+	  
+      parser.Input();
+    }
+
 }
 
 PARSER_END(SILParser)
@@ -33,44 +62,119 @@ SKIP:
 }
 
 TOKEN: {
-  		<DIGIT: ["0"-"9"]>
-	|  	<LETTER: ["a"-"f"]>
+    	< TRUE: "tt" >
+	| 	< FALSE: "ff" >
+  	| 	< NUM: (<DIGIT>)+ >
+ 	| 	< DIGIT: ["0"-"9"] >
+	|	< VAR: (<LETTER>)+ >
+	|  	< LETTER: ["a"-"f"] >
+	| 	< SIGN: "+"|"-" >
+	| 	< SEMICOLON: ";" >
+	| 	< IF: "if" >
+	| 	< THEN: "then" >
+	| 	< ELSE: "else" >
+	| 	< WHILE: "while" >
+	| 	< EQUAL: "==" >
+	| 	< AND: "^" >
   }
 
-
-void Num(): {}
+/** Root production. */
+void Input() :
+{}
 {
-  (<DIGIT>)+
+  Command(true) <EOF>
+  {
+    System.out.println("Evaluation\n==========");
+	if (variables != null) {
+	  for (HashMap.Entry<String, Integer> entry : variables.entrySet()) {
+	  		System.out.println(entry.getKey() + " value is " + entry.getValue());
+	  	}
+	  	System.out.println("\n");
+	}
+  }
 }
 
-void Var(): {}
+int ArithmeticExpression(boolean eval):
 {
-  (<LETTER>)+
+  	Token tok;
+	int first, second;
+	boolean addition = true;
 }
-void ArithmeticExpression(): {}
 {
-  ("(" ArithmeticExpression()) ("+"|"-") (ArithmeticExpression() ")") | Num() | Var() 
-}
-
-void BooleanExpression(): {}
-{
-  		LOOKAHEAD(2)
-	 	"(" BooleanExpression() "^" BooleanExpression() ")"
-	| 	"("ArithmeticExpression() "==" ArithmeticExpression()")"
-	| 	"!" BooleanExpression()
-	| 	"tt" | "ff"
-}
-void command(): {}
-{
-  	LOOKAHEAD(2)
-  	statment() |
-  	statment() ";" command()
-}
-
-void statment(): {}
-{
-		"skip" | Var() ":=" ArithmeticExpression()
-	|	"if" BooleanExpression() "then" command() "else" command()
-	| 	"while" BooleanExpression() "do" command()
+		("(" first=ArithmeticExpression(eval)) (tok= <SIGN> { if (tok.toString().equals("-")) addition = false; }) (second=ArithmeticExpression(eval) ")")
+		{
+		  if (eval)
+			  if (addition) return first + second;
+			  else if (first >= second) return first - second;
+			  else throw new RuntimeException("cannot evaluate negative numbers");
+		  return 0;
+		}
+ 	|	tok=<NUM>
+ 		{
+ 		  return Integer.parseInt(tok.toString());
+ 		}
+	|	tok=<VAR>
+		{ return eval ? SILParser.variables.get(tok.toString()) : 0; }
 }
 
+boolean BooleanExpression(boolean eval):
+{
+	boolean firstBool, secondBool;
+	int firstInt, secondInt;
+  }
+{
+  		LOOKAHEAD(2147483647)
+	 	"(" firstBool=BooleanExpression(eval) <AND> secondBool=BooleanExpression(eval) ")"
+	 	{ return firstBool && secondBool;}
+	| 	"("firstInt=ArithmeticExpression(eval) <EQUAL> secondInt=ArithmeticExpression(eval)")"
+		{ return firstInt==secondInt ? true : false; }
+	| 	"!" firstBool=BooleanExpression(eval)
+		{ return !firstBool; }
+	|	<TRUE>
+		{ return true; }
+	|	<FALSE>
+		{ return false; }
+}
+
+
+
+void Command(boolean eval): {}
+{
+  	statment(eval) [LOOKAHEAD(1) <SEMICOLON> Command(eval)]
+}
+
+void statment(boolean eval):
+{
+	int num;
+	Token name;
+	Token tok;
+	boolean bool;
+	String whileCommand = "while";
+}
+{
+		"skip"
+	| 	name=<VAR> ":=" num=ArithmeticExpression(eval)
+		{
+		  if (eval) SILParser.variables.put(name.toString(), num);
+		}
+	|	<IF> bool=BooleanExpression(eval) <THEN> Command(bool && eval) <ELSE> Command(!bool && eval)
+	| 	<WHILE>
+		{
+		  int i = 1;
+		  while (getToken(i).kind != 0) {
+		    whileCommand +=  " " + getToken(i).image;
+		    i++;
+		  }
+		}
+		bool = BooleanExpression(eval)  "do" Command(bool && eval) {
+		  if (bool && eval) {
+		    if (lastStateVariables != null && lastStateVariables.equals(variables)) {
+		      System.out.println("Infinite Computation ");
+		      break;
+		    }
+		    lastStateVariables = copyMap();
+		    SILParser.ReInit(new ByteArrayInputStream(whileCommand.getBytes()));
+		    SILParser.Command(true); 
+		  }
+		}
+}

@@ -74,6 +74,8 @@ TOKEN: {
 	| 	< THEN: "then" >
 	| 	< ELSE: "else" >
 	| 	< WHILE: "while" >
+	| 	< EQUAL: "==" >
+	| 	< AND: "^" >
   }
 
 /** Root production. */
@@ -121,10 +123,10 @@ boolean BooleanExpression(boolean eval):
 	int firstInt, secondInt;
   }
 {
-  		LOOKAHEAD(2)
-	 	"(" firstBool=BooleanExpression(eval) "^" secondBool=BooleanExpression(eval) ")"
+  		LOOKAHEAD(2147483647)
+	 	"(" firstBool=BooleanExpression(eval) <AND> secondBool=BooleanExpression(eval) ")"
 	 	{ return firstBool && secondBool;}
-	| 	"("firstInt=ArithmeticExpression(eval) "==" secondInt=ArithmeticExpression(eval)")"
+	| 	"("firstInt=ArithmeticExpression(eval) <EQUAL> secondInt=ArithmeticExpression(eval)")"
 		{ return firstInt==secondInt ? true : false; }
 	| 	"!" firstBool=BooleanExpression(eval)
 		{ return !firstBool; }

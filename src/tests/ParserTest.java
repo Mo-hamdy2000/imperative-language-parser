@@ -59,13 +59,19 @@ class ParserTest {
 	}
 	
 	@Test
-	void testFile3() throws FileNotFoundException {
-		FileReader fileReader = new FileReader("src/resources/test3.txt");
-    	SILParser.ReInit(fileReader);
-	    assertDoesNotThrow(() -> {
-	        parser.Input();
-	      });
-	      
+	void testFile3And4() throws FileNotFoundException {
+		assertAll("Test two files",
+				()-> assertDoesNotThrow(()-> {
+					FileReader fileReader = new FileReader("src/resources/test3.txt");
+					SILParser.ReInit(fileReader);
+					parser.Input();
+				}),
+				()-> assertDoesNotThrow(()-> {
+					FileReader fileReader = new FileReader("src/resources/test4.txt");
+					SILParser.ReInit(fileReader);
+					parser.Input();
+				})
+	    );
 	}
 
 	@Test
@@ -75,7 +81,6 @@ class ParserTest {
 	    assertThrows(Throwable.class, () -> {
 	        parser.Input();
 	      });
-	      
 	}
 	
 	@Test
