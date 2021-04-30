@@ -1,4 +1,4 @@
 b := (5+3); ab := (13-5); skip;
 if (b == ab)
     then a := (2+(ab - 5)) 
-    else a := 18
+    else a := 18; if ff then skip else skip

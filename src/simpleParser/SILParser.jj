@@ -82,44 +82,51 @@ void Input() :
 {
   Command(true) <EOF>
   {
-    System.out.println("Evaluation");
-	if (lastStateVariables != null) {
-	  for (HashMap.Entry<String, Integer> entry : lastStateVariables.entrySet()) {
+    System.out.println("Evaluation\n==========");
+	if (variables != null) {
+	  for (HashMap.Entry<String, Integer> entry : variables.entrySet()) {
 	  		System.out.println(entry.getKey() + " value is " + entry.getValue());
 	  	}
+	  	System.out.println("\n");
 	}
   }
 }
 
-int ArithmeticExpression():
+int ArithmeticExpression(boolean eval):
 {
   	Token tok;
 	int first, second;
 	boolean addition = true;
 }
 {
-		("(" first=ArithmeticExpression()) (tok= <SIGN> { if (tok.toString().equals("-")) addition = false; }) (second=ArithmeticExpression() ")")
-		{ return addition? first + second : first - second; }
+		("(" first=ArithmeticExpression(eval)) (tok= <SIGN> { if (tok.toString().equals("-")) addition = false; }) (second=ArithmeticExpression(eval) ")")
+		{
+		  if (eval)
+			  if (addition) return first + second;
+			  else if (first >= second) return first - second;
+			  else throw new RuntimeException("cannot evaluate negative numbers");
+		  return 0;
+		}
  	|	tok=<NUM>
  		{
  		  return Integer.parseInt(tok.toString());
  		}
 	|	tok=<VAR>
-		{ return SILParser.variables.get(tok.toString()); }
+		{ return eval ? SILParser.variables.get(tok.toString()) : 0; }
 }
 
-boolean BooleanExpression():
+boolean BooleanExpression(boolean eval):
 {
 	boolean firstBool, secondBool;
 	int firstInt, secondInt;
   }
 {
   		LOOKAHEAD(2)
-	 	"(" firstBool=BooleanExpression() "^" secondBool=BooleanExpression() ")"
-	 	{ return  firstBool && secondBool;}
-	| 	"("firstInt=ArithmeticExpression() "==" secondInt=ArithmeticExpression()")"
+	 	"(" firstBool=BooleanExpression(eval) "^" secondBool=BooleanExpression(eval) ")"
+	 	{ return firstBool && secondBool;}
+	| 	"("firstInt=ArithmeticExpression(eval) "==" secondInt=ArithmeticExpression(eval)")"
 		{ return firstInt==secondInt ? true : false; }
-	| 	"!" firstBool=BooleanExpression()
+	| 	"!" firstBool=BooleanExpression(eval)
 		{ return !firstBool; }
 	|	<TRUE>
 		{ return true; }
@@ -144,17 +151,11 @@ void statment(boolean eval):
 }
 {
 		"skip"
-	| 	name=<VAR> ":=" num=ArithmeticExpression()
+	| 	name=<VAR> ":=" num=ArithmeticExpression(eval)
 		{
-		  if (eval) {
-		  SILParser.variables.put(name.toString(), num);
-		  System.out.println("var is "+SILParser.variables.get(name.toString()));
-		  }
+		  if (eval) SILParser.variables.put(name.toString(), num);
 		}
-	|	<IF> bool=BooleanExpression() <THEN> Command(bool) <ELSE> Command(!bool)
-		{
-		  System.out.println("Boolean Expression evaluated "+bool);
-		}
+	|	<IF> bool=BooleanExpression(eval) <THEN> Command(bool && eval) <ELSE> Command(!bool && eval)
 	| 	<WHILE>
 		{
 		  int i = 1;
@@ -163,8 +164,8 @@ void statment(boolean eval):
 		    i++;
 		  }
 		}
-		bool = BooleanExpression()  "do" Command(bool) {
-		  if (bool) {
+		bool = BooleanExpression(eval)  "do" Command(bool && eval) {
+		  if (bool && eval) {
 		    if (lastStateVariables != null && lastStateVariables.equals(variables)) {
 		      System.out.println("Infinite Computation ");
 		      break;
