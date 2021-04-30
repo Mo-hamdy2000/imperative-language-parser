@@ -3,6 +3,7 @@ package simpleParser;
 
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
+import java.io.ByteArrayInputStream;
 import java.io.FileReader;
 import java.io.InputStreamReader;
 import java.io.StringReader;
@@ -11,6 +12,17 @@ import java.util.HashMap;
 public class SILParser {
 
 	public static HashMap<String, Integer> variables = new HashMap<String, Integer>();
+	public static HashMap<String, Integer> lastStateVariables;
+	
+	public static HashMap<String, Integer> copyMap()
+    {
+        HashMap<String, Integer> currentStateVariables = new HashMap<String, Integer>();
+        for (HashMap.Entry<String, Integer> entry : variables.entrySet()) {
+            currentStateVariables.put(entry.getKey(),
+                           entry.getValue());
+        }
+        return currentStateVariables;
+    }
 
     public static void main(String[] args) throws Exception {
       System.out.println("Enter input file name or press enter to input from console: ");
@@ -69,6 +81,14 @@ void Input() :
 {}
 {
   Command(true) <EOF>
+  {
+    System.out.println("Evaluation");
+	if (lastStateVariables != null) {
+	  for (HashMap.Entry<String, Integer> entry : lastStateVariables.entrySet()) {
+	  		System.out.println(entry.getKey() + " value is " + entry.getValue());
+	  	}
+	}
+  }
 }
 
 int ArithmeticExpression():
@@ -118,20 +138,40 @@ void statment(boolean eval):
 {
 	int num;
 	Token name;
+	Token tok;
 	boolean bool;
-  }
+	String whileCommand = "while";
+}
 {
 		"skip"
 	| 	name=<VAR> ":=" num=ArithmeticExpression()
 		{
 		  if (eval) {
-		  System.out.println("var is "+num);
 		  SILParser.variables.put(name.toString(), num);
+		  System.out.println("var is "+SILParser.variables.get(name.toString()));
 		  }
 		}
 	|	<IF> bool=BooleanExpression() <THEN> Command(bool) <ELSE> Command(!bool)
 		{
 		  System.out.println("Boolean Expression evaluated "+bool);
 		}
-	//| 	<WHILE> BooleanExpression() "do" Command()
+	| 	<WHILE>
+		{
+		  int i = 1;
+		  while (getToken(i).kind != 0) {
+		    whileCommand +=  " " + getToken(i).image;
+		    i++;
+		  }
+		}
+		bool = BooleanExpression()  "do" Command(bool) {
+		  if (bool) {
+		    if (lastStateVariables != null && lastStateVariables.equals(variables)) {
+		      System.out.println("Infinite Computation ");
+		      break;
+		    }
+		    lastStateVariables = copyMap();
+		    SILParser.ReInit(new ByteArrayInputStream(whileCommand.getBytes()));
+		    SILParser.Command(true); 
+		  }
+		}
 }
